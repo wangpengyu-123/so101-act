@@ -1,0 +1,66 @@
+# =============================================================================
+# SO-ARM101 local ACT training config (wall-x lerobot 0.3.4, editable install)
+#
+# Data: lerobot v2.1, dual camera (global + wrist), 6-dim action/state
+#       (5 joints RANGE_M100_100 + gripper RANGE_0_100)
+#
+# "数据一到就能跑" -> ONLY change these data/location fields after recording:
+#   1. dataset.repo_id / dataset.root  (recorded dataset id + absolute local path)
+#   2. output_dir / job_name           (unique per run)
+#
+# Every hyperparameter below has a verified source:
+#   - wall-x lerobot src/lerobot/policies/act/configuration_act.py (ACT defaults)
+#   - /media/<user>/TSD302/so101_repos/so101-imitation-learning-ACT/docs/reproduce.md
+#     ("Default ACT hyperparameters")
+#   - /media/<user>/TSD302/so101_repos/so101-lerobot-vla/SO101_COMMANDS.md
+#     (local ACT training commands)
+# =============================================================================
+
+dataset:
+  # Recorded dataset id (label only; loading is forced to the local root below).
+  repo_id: "<user>/so101_real_round3"
+  # Absolute local path: load directly from disk (meta/ + data/ + videos/).
+  root: "/path/to/so101_walloss/so101_real_round3"
+  use_imagenet_stats: true
+  video_backend: pyav      # defensive: round3 videos are AV1; avoid torchcodec decode issues
+
+policy:
+  type: act
+  device: cuda
+  use_amp: false          # proven configs train without AMP; enable for ~2.4x speedup (optional)
+  push_to_hub: false      # MUST stay false (HF push error otherwise - verified pitfall)
+
+  # ---- ACT architecture: verified defaults from configuration_act.py ----
+  n_obs_steps: 1          # HARD constraint: ACTConfig raises ValueError if != 1
+  chunk_size: 100         # 保持 100 与开源一致
+  n_action_steps: 100     # 保持 100 与开源一致
+  use_vae: true           # MUST be true (false averages contradictory demos to mush)
+  vision_backbone: resnet18
+  pretrained_backbone_weights: "ResNet18_Weights.IMAGENET1K_V1"   # cached locally
+  dim_model: 512
+  n_heads: 8
+  dim_feedforward: 3200
+  n_encoder_layers: 4
+  n_decoder_layers: 1     # matches original ACT (bug keeps only 1st layer used)
+  latent_dim: 32
+  n_vae_encoder_layers: 4
+  dropout: 0.1
+  kl_weight: 10.0
+  # ---- ACT training preset (feed get_optimizer_preset) ----
+  optimizer_lr: 1e-5      # ACT default; proven value in all reference repos
+  optimizer_weight_decay: 1e-4
+  optimizer_lr_backbone: 1e-5
+
+# ---- Pipeline (defaults from configs/train.py, tuned to reference repos) ----
+batch_size: 8            # >= 8 (never 1). At real 480x640: bs8 ~4.2GB safe; do NOT raise to 16 (~7.6GB, borderline OOM)
+steps: 100000            # full run. Short set: 5000-10000
+save_freq: 5000          # reference uses 5000 (crash costs <=5k steps)
+num_workers: 4
+seed: 1000
+log_freq: 200
+
+output_dir: /path/to/wall-x/lerobot/outputs/train/act_so101_round3   # unique per run (must not pre-exist)
+job_name: act_so101_round3                                                                  # unique per run
+
+wandb:
+  enable: false          # offline local logs only

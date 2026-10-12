@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Backups
+*.bak
+*.orig
+*.backup
+
+# Training / rollout artifacts (large, never commit)
+outputs/
+logs/
+*.log
+
+# Datasets (videos / meta / stats — huge)
+data/
+datasets/
+*/videos/
+*/meta/
+*.jsonl
+norm_stats*.json
+calibration/
+*.calib.json
+
+# Checkpoints / weights (hundreds of MB each)
+checkpoints/
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.bin
+
+# Virtualenv / conda
+.venv/
+venv/
+env/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store

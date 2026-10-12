@@ -1,0 +1,9 @@
+# SO-101 ACT round3 真机 rollout 候选 checkpoint 清单（一行一个，# 开头为注释）
+# 选择依据：无验证集，训练 loss 检测不了过拟合 → 按真机 rollout 成功率选：
+#   55-60k ≈ 开源 45 epochs 对应步数；中间 80k；末位 100k。
+# 路径 = 相对 wall-x lerobot 源码目录的 outputs/（即训练 output_dir 的上级），
+# 按你的实际训练输出位置修改后使用。
+outputs/train/act_so101_round3/checkpoints/055000
+outputs/train/act_so101_round3/checkpoints/060000
+outputs/train/act_so101_round3/checkpoints/080000
+outputs/train/act_so101_round3/checkpoints/100000
